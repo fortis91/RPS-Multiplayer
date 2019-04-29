@@ -83,7 +83,7 @@ $(document).ready(function () {
 
     var compareResults = function (gameData) {
         console.log("check user selection for winner");
-        var message = "tie";
+        var message;
         var choice1 = gameData.child("game/players/1").val().choice;
         var choice2 = gameData.child("game/players/2").val().choice;
         var wins1 = parseInt(gameData.child("game/players/1").val().wins);
@@ -99,6 +99,7 @@ $(document).ready(function () {
             losses2++;
             message = buildMessage(choice1, choice2);
             console.log(choice1 + message);
+            choice1 = choice1 + message;
         }
         else if (choice1 === choice2) {
             $("#result").html("Tie Game");
@@ -110,6 +111,8 @@ $(document).ready(function () {
             losses1++;
             message = buildMessage2(choice1, choice2);
             console.log(choice2 + message);
+            choice2 = choice2 + message;
+
         }
 
         var boxRow = "";
@@ -127,8 +130,9 @@ $(document).ready(function () {
 
         chosen.empty();
         var par = $("<p>");
-        par.text(val +message);
+        par.text(val);
         chosen.append(par);
+        chosen.addClass("red");
         chosen.show();
 
         database.ref("game/players/1").update({
@@ -273,10 +277,10 @@ $(document).ready(function () {
             message = " crushes Scissors";
         }
         if (choice1 === "Paper" && choice2 === "Rock") {
-            message = " covers paper";
+            message = " covers Rock";
         }
         if (choice1 === "Scissors" && choice2 === "Paper") {
-            message = " cuts paper"
+            message = " cuts Paper"
         }
         console.log(message);
         return message;
@@ -287,10 +291,10 @@ $(document).ready(function () {
             message = " crushes Scissors";
         }
         if (choice2 === "Paper" && choice1 === "Rock") {
-            message = " covers paper";
+            message = " covers Rock";
         }
         if (choice2 === "Scissors" && choice1 === "Paper") {
-            message = " cuts paper"
+            message = " cuts Paper"
         }
         console.log(message);
         return message;

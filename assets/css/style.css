@@ -56,3 +56,10 @@ body {
 #chatMessage {
     background-color: lightblue;
 }
+
+.lose { 
+    color: red; 
+}
+.win {
+    color: green;
+}
