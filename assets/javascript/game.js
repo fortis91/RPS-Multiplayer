@@ -1,23 +1,24 @@
-var player1Connected = false;
-var player2Connected = false;
 var player = 0;
 var turn = 0;
+
 var player1Name = "";
+var player1Ready = false;
 var player2Name = "";
-var rWins = "Scissors";
-var pWins = "Rock";
-var sWins = "Paper";
+var player2Ready = false;
 
 var timerId = 0;
 var chat = [];
-var statusRef1;
-var statusRef2;
 
 $(document).ready(function () {
+    $(window).keydown(function (event) {
+        if (event.keyCode == 13) {
+            event.preventDefault();
+            return false;
+        }
+    });
+
     $(".choices").hide();
     $(".chosen").hide();
-
-    var database = firebase.database();
 
     database.ref("game/chat").onDisconnect().remove();
 
@@ -28,68 +29,10 @@ $(document).ready(function () {
     });
 
 
-    database.ref().on("value", function (snapshot) {
-        if (snapshot.child("game/players/1").exists()) {
-            player1Connected = true;
-            var name = snapshot.child("game/players/1").val().name;
-            var player1Wins = snapshot.child("game/players/1").val().wins;
-            var player1Losses = snapshot.child("game/players/1").val().losses;
-            $("#box1row1").text(name);
-            player1Name = name;
-            $("#box1row3").text(`Wins: ${player1Wins} Losses: ${player1Losses}`);
-        }
-        else {
-            player1Connected = false;
-            $("#box1row1").text("Waiting for Player 1");
-        }
-
-        if (snapshot.child("game/players/2").exists()) {
-            player2Connected = true;
-            var name = snapshot.child("game/players/2").val().name;
-            var player2Wins = snapshot.child("game/players/2").val().wins;
-            var player2Losses = snapshot.child("game/players/2").val().losses;
-            $("#box3row1").text(name);
-            player2Name = name;
-            $("#box3row3").text(`Wins: ${player2Wins} Losses: ${player2Losses}`);
-        }
-        else {
-            player2Connected = false;
-            $("#box3row1").text("Waiting for Player 2");
-        }
-
-        if (snapshot.child("game/turn").exists()) {
-            var updatedTurn = parseInt(snapshot.child("game/turn").val());
-            if (turn !== 3 && updatedTurn === 3) {
-                turn = 3;
-                compareResults(snapshot);
-                timerId = setTimeout(resetGame, 5000);
-            }
-            else if (turn !== 1 && updatedTurn === 1) {
-                turn = 1;
-                $("#box3border").css({ "border-color": "black" });
-                // $("#box1border").css({ "border-color": "lightgreen" });
-                if (player === 1) {
-                    $("#systemMessage2").html(`<h5>It's your turn!</h5>`);
-                    $("#box1row2").children(".choices").show();
-                    $("#box1row2").children(".chosen").hide();
-                }
-                else {
-                    $("#systemMessage2").html(`<h5>Waiting for ${player1Name} to choose.</h5>`);
-                }
-            }
-            else if (turn !== 2 && updatedTurn === 2) {
-                turn = 2;
-                $("#box1border").css({ "border-color": "black" });
-                // $("#box3border").css({ "border-color": "lightgreen" });
-                if (player === 2) {
-                    $("#systemMessage2").html("<h5>It's your turn!</h5>");
-                    $("#box3row2").children(".choices").show();
-                    $("#box3row2").children(".chosen").hide();
-                }
-                else {
-                    $("#systemMessage2").html(`<h5>Waiting for ${player2Name} to choose.</h5>`);
-                }
-            }
+    database.ref().on("value", function (gameData) {
+        initializePlayers(gameData)
+        if (gameData.child("game/turn").exists()) {
+            setPlayerTurn(gameData);
         }
     });
 
@@ -97,58 +40,20 @@ $(document).ready(function () {
     $("#startButton").on("click", function (event) {
         event.preventDefault();
         var userName = $("#userName").val().trim();
+        console.log("register player: " + userName);
         if (userName === undefined || userName === "") {
             alert("We need your name to play");
         }
         else {
-            $("#userName").val("");
-            $("#userName").hide();
-            $("#startButton").hide();
-            if (player1Connected && player2Connected) {
-                alert("Sorry, Game Full! Try Again Later!");
-            }
-            else if (!player1Connected) {
-                player1Connected = true;
-                player = 1;
-                statusRef1 = database.ref("game/players/1");
-                statusRef1.set({
-                    'losses': 0,
-                    'name': userName,
-                    'wins': 0,
-                    'choice': null
-                });
-                statusRef1.onDisconnect().remove();
-                if (player2Connected) {
-                    database.ref("game").update({
-                        'turn': 1
-                    });
-                }
-                $("#systemMessage1").html("<h4>Player 1: "+userName+"</h4>");
-            }
-            else if (!player2Connected) {
-                player2Connected = true;
-                player = 2;
-                statusRef2 = database.ref("game/players/2");
-                statusRef2.set({
-                    'losses': 0,
-                    'name': userName,
-                    'wins': 0
-                });
-                statusRef2.onDisconnect().remove();
-                database.ref("game").update({
-                    'turn': 1
-                });
-                $("#systemMessage1").html("<h4>Player 2: " + userName + "</h4>");
-
-            }
-            database.ref("game/turn").onDisconnect().remove();
+            registerPlayer(userName);
         }
     });
 
     $(".choices").on("click", function (event) {
         var val = $(this).attr("value");
+        console.log("Player select: " + val);
         database.ref("game/players/" + player).update({
-            'choice': val
+            "choice": val
         });
         var boxRow = "";
         if (player === 1) {
@@ -160,78 +65,85 @@ $(document).ready(function () {
         $(boxRow).children(".choices").hide();
         var chosen = $(boxRow).children(".chosen");
         chosen.empty();
-        var par = $("<p>");
-        par.text(val);
-        chosen.append(par);
+        var p = $("<p>");
+        p.text(val);
+        chosen.append(p);
         chosen.show();
         database.ref("game").update({
-            'turn': turn + 1
+            "turn": turn + 1
         });
     });
 
     $("#chat").on("click", function (event) {
         event.preventDefault();
-        if (player1Connected && player2Connected) {
+        if (player1Ready && player2Ready) {
             displayChatMessages();
         }
     });
 
-    var compareResults = function (snapshot) {
-        var choice1 = snapshot.child("game/players/1").val().choice;
-        var choice2 = snapshot.child("game/players/2").val().choice;
-        var wins1 = parseInt(snapshot.child("game/players/1").val().wins);
-        var wins2 = parseInt(snapshot.child("game/players/2").val().wins);
-        var losses1 = parseInt(snapshot.child("game/players/1").val().losses);
-        var losses2 = parseInt(snapshot.child("game/players/2").val().losses);
+    var compareResults = function (gameData) {
+        console.log("check user selection for winner");
+        var message = "tie";
+        var choice1 = gameData.child("game/players/1").val().choice;
+        var choice2 = gameData.child("game/players/2").val().choice;
+        var wins1 = parseInt(gameData.child("game/players/1").val().wins);
+        var wins2 = parseInt(gameData.child("game/players/2").val().wins);
+        var losses1 = parseInt(gameData.child("game/players/1").val().losses);
+        var losses2 = parseInt(gameData.child("game/players/2").val().losses);
 
-        if ((choice1 === "Rock" && choice2 === rWins) ||
-            (choice1 === "Paper" && choice2 === pWins) ||
-            (choice1 === "Scissors" && choice2 === sWins)) {
+        if ((choice1 === "Rock" && choice2 === "Scissors") ||
+            (choice1 === "Paper" && choice2 === "Rock") ||
+            (choice1 === "Scissors" && choice2 === "Paper")) {
             $("#result").html("<p>" + player1Name + " Wins!</p>");
             wins1++;
             losses2++;
+            message = buildMessage(choice1, choice2);
+            console.log(choice1 + message);
         }
         else if (choice1 === choice2) {
-            $("#result").html("<pTie Game!</p>");
+            $("#result").html("Tie Game");
 
         }
         else {
             $("#result").html("<p>" + player2Name + " Wins!</p>");
             wins2++;
             losses1++;
+            message = buildMessage2(choice1, choice2);
+            console.log(choice2 + message);
         }
 
         var boxRow = "";
         var val = "";
         if (player === 1) {
             boxRow = "#box3row2";
-            val = choice2;
+            val = choice2;// +message;
         }
         else if (player === 2) {
             boxRow = "#box1row2";
-            val = choice1;
+            val = choice1;// +message;
         }
 
         var chosen = $(boxRow).children(".chosen");
 
         chosen.empty();
         var par = $("<p>");
-        par.text(val);
+        par.text(val +message);
         chosen.append(par);
         chosen.show();
 
         database.ref("game/players/1").update({
-            'wins': wins1,
-            'losses': losses1
+            "wins": wins1,
+            "losses": losses1
         });
         database.ref("game/players/2").update({
-            'wins': wins2,
-            'losses': losses2
+            "wins": wins2,
+            "losses": losses2
         });
     }
 
 
     var displayChatMessages = function () {
+        console.log("display chat message");
         var text = $("#text").val();
         $("#text").val("");
         if (player === 1) {
@@ -247,15 +159,150 @@ $(document).ready(function () {
     }
 
 
+    var registerPlayer = function (userName) {
+        console.log("register player");
+        $("#userName").val("");
+        $("#userName").hide();
+        $("#startButton").hide();
+        if (player1Ready && player2Ready) {
+            alert("Sorry, Game Full! Try Again Later!");
+        }
+        else if (!player1Ready) {
+            player1Ready = true;
+            player = 1;
+            database.ref("game/players/1").set({
+                "losses": 0,
+                "name": userName,
+                "wins": 0,
+                "choice": null
+            });
+            database.ref("game/players/1").onDisconnect().remove();
+            if (player2Ready) {
+                database.ref("game").update({
+                    "turn": 1
+                });
+            }
+            $("#systemMessage1").html("<h4>Player 1: " + userName + "</h4>");
+        }
+        else if (!player2Ready) {
+            player2Ready = true;
+            player = 2;
+            database.ref("game/players/2").set({
+                "losses": 0,
+                "name": userName,
+                "wins": 0
+            });
+            database.ref("game/players/2").onDisconnect().remove();
+            database.ref("game").update({
+                "turn": 1
+            });
+            $("#systemMessage1").html("<h4>Player 2: " + userName + "</h4>");
+
+        }
+        database.ref("game/turn").onDisconnect().remove();
+    }
+
+    var initializePlayers = function (gameData) {
+        console.log("initialize and setup players");
+        if (gameData.child("game/players/1").exists()) {
+            player1Ready = true;
+            var name = gameData.child("game/players/1").val().name;
+            var player1Wins = gameData.child("game/players/1").val().wins;
+            var player1Losses = gameData.child("game/players/1").val().losses;
+            $("#box1row1").text(name);
+            player1Name = name;
+            $("#box1row3").text("Wins: " + player1Wins + " Losses: " + player1Losses);
+        }
+        else {
+            player1Ready = false;
+            $("#box1row1").text("Waiting for Player 1");
+        }
+
+        if (gameData.child("game/players/2").exists()) {
+            player2Ready = true;
+            var name = gameData.child("game/players/2").val().name;
+            var player2Wins = gameData.child("game/players/2").val().wins;
+            var player2Losses = gameData.child("game/players/2").val().losses;
+            $("#box3row1").text(name);
+            player2Name = name;
+            $("#box3row3").text("Wins: " + player2Wins + " Losses: " + player2Losses);
+        }
+        else {
+            player2Ready = false;
+            $("#box3row1").text("Waiting for Player 2");
+        }
+
+    }
+    var setPlayerTurn = function (gameData) {
+        console.log("set next player turn");
+        var updatedTurn = parseInt(gameData.child("game/turn").val());
+        if (turn !== 3 && updatedTurn === 3) {
+            turn = 3;
+            compareResults(gameData);
+            timerId = setTimeout(resetGame, 5000);
+        }
+        else if (turn !== 1 && updatedTurn === 1) {
+            turn = 1;
+            $("#box3border").css({ "border-color": "black" });
+            if (player === 1) {
+                $("#systemMessage2").html("It's your turn");
+                $("#box1row2").children(".choices").show();
+                $("#box1row2").children(".chosen").hide();
+            }
+            else {
+                $("#systemMessage2").html("Waiting for " + player1Name + " to choose.");
+            }
+        }
+        else if (turn !== 2 && updatedTurn === 2) {
+            turn = 2;
+            $("#box1border").css({ "border-color": "black" });
+            if (player === 2) {
+                $("#systemMessage2").html("It's your turn " + player);
+                $("#box3row2").children(".choices").show();
+                $("#box3row2").children(".chosen").hide();
+            }
+            else {
+                $("#systemMessage2").html("Waiting for " + player2Name + " to choose.");
+            }
+        }
+    }
+
+    var buildMessage = function (choice1, choice2) {
+        var message;
+        if (choice1 === "Rock" && choice2 === "Scissors") {
+            message = " crushes Scissors";
+        }
+        if (choice1 === "Paper" && choice2 === "Rock") {
+            message = " covers paper";
+        }
+        if (choice1 === "Scissors" && choice2 === "Paper") {
+            message = " cuts paper"
+        }
+        console.log(message);
+        return message;
+    }
+    var buildMessage2 = function (choice1, choice2) {
+        var message;
+        if (choice2 === "Rock" && choice1 === "Scissors") {
+            message = " crushes Scissors";
+        }
+        if (choice2 === "Paper" && choice1 === "Rock") {
+            message = " covers paper";
+        }
+        if (choice2 === "Scissors" && choice1 === "Paper") {
+            message = " cuts paper"
+        }
+        console.log(message);
+        return message;
+    }
+
     var resetGame = function () {
+        console.log("reset game");
         $(".chosen").hide();
         $("#result").empty();
 
         database.ref("game").update({
-            'turn': 1
+            "turn": 1
         });
     }
 });
-
-
-

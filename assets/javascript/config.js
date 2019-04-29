@@ -6,4 +6,6 @@ var config = {
 	storageBucket: "rock-paper-scissors-b6717.appspot.com",
 	messagingSenderId: "502055091484"
 };
+
 firebase.initializeApp(config);
+var database = firebase.database();
