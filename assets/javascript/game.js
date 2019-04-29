@@ -23,8 +23,8 @@ $(document).ready(function () {
 
     database.ref("game/chat").on("child_added", function (data) {
         var text = data.val().message;
-        $("#chatLog").val($("#chatLog").val() + String.fromCharCode(13, 10) + text);
-        $("#chatLog").scrollTop($("#chatLog")[0].scrollHeight);
+        $("#chatMessage").val($("#chatMessage").val() + String.fromCharCode(13, 10) + text);
+        $("#chatMessage").scrollTop($("#chatMessage")[0].scrollHeight);
     });
 
 
