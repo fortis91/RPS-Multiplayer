@@ -26,22 +26,22 @@
             <div class="col">
                 <div id="systemMessage1"></div>
                 <div id="systemMessage2"></div>
-                <div id="result" class="text-center"></div>
+                <div id="result"></div>
                 <form>
                     <input type="text" id="userName">
-                    <input type="button" class="btn btn-primary btn-sm" id="startButton" type="submit" value="Start">
+                    <input type="button" class="btn btn-success btn-sm" id="startButton" type="submit" value="Start">
                 </form>
             </div>
         </div>
         <div class="row justify-content-center">
             <div class="col-sm-4 col-xs-12">
-                <div class="row box" id="box1border">
+                <div class="row box">
                     <div class="col">
                         <div class="row playerTitle" style="height: 25%">
-                            <div class="col" id="box1row1"></div>
+                            <div class="col" id="player1Title"></div>
                         </div>
                         <div class="row" style="height: 50%">
-                            <div class="col" id="box1row2">
+                            <div class="col" id="player1Choice">
                                 <div class="choices" value="Rock">Rock</div>
                                 <div class="choices" value="Paper">Paper</div>
                                 <div class="choices" value="Scissors">Scissors</div>
@@ -49,25 +49,19 @@
                             </div>
                         </div>
                         <div class="row lastRow" style="height: 25%">
-                            <div class="col" id="box1row3"></div>
+                            <div class="col" id="playe1Score"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- <div class="col-sm-4 col-xs-12">
-                <div class="row">
-                    <div class="col box text-center" id="result">
-                    </div>
-                </div>
-            </div> -->
             <div class="col-sm-4 col-xs-12">
-                <div class="row box" id="box3border">
+                <div class="row box">
                     <div class="col">
                         <div class="row playerTitle" style="height: 25%">
-                            <div class="col" id="box3row1"></div>
+                            <div class="col" id="player2Title"></div>
                         </div>
                         <div class="row" style="height: 50%">
-                            <div class="col" id="box3row2">
+                            <div class="col" id="player2Choice">
                                 <div class="choices" value="Rock">Rock</div>
                                 <div class="choices" value="Paper">Paper</div>
                                 <div class="choices" value="Scissors">Scissors</div>
@@ -75,7 +69,7 @@
                             </div>
                         </div>
                         <div class="row lastRow" style="height: 25%">
-                            <div class="col" id="box3row3"></div>
+                            <div class="col" id="player2Score"></div>
                         </div>
                     </div>
                 </div>
@@ -85,11 +79,10 @@
             <div class="col-md-6 col-sm-8 col-xs-12">
                 <h4>Chat Room:</h4>
                 <textarea class="form-control" rows="6" id="chatMessage" readonly></textarea>
-                <br>
                 <form class="form-inline">
                     <div class="form-group">
                         <input type="text" id="text">
-                        <input type="button" class="btn btn-primary btn-sm" id="chat" type="submit" value="Send">
+                        <input type="button" class="btn btn-success btn-sm" id="chat" type="submit" value="Send">
                     </div>
                 </form>
             </div>

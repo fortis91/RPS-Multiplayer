@@ -59,7 +59,7 @@ h1 {
 }
 
 #chatMessage {
-    background-color: lightblue;
+    /* background-color: lightblue; */
 }
 
 .lose { 
@@ -72,6 +72,11 @@ h1 {
 .playerTitle {
     background-color: rgb(157, 184, 201);
     color: #FFFFFF;
+    text-align: center;
+    align-content: center;
+}
+
+#player2Choice, #player1Choice {
     text-align: center;
     align-content: center;
 }

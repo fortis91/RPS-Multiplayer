@@ -57,10 +57,10 @@ $(document).ready(function () {
         });
         var boxRow = "";
         if (player === 1) {
-            boxRow = "#box1row2";
+            boxRow = "#player1Choice";
         }
         else if (player === 2) {
-            boxRow = "#box3row2";
+            boxRow = "#player2Choice";
         }
         $(boxRow).children(".choices").hide();
         var chosen = $(boxRow).children(".chosen");
@@ -99,8 +99,6 @@ $(document).ready(function () {
             wins1++;
             losses2++;
             message = buildMessage(choice1, choice2);
-            console.log(choice1 + message);
-            // choice1 = choice1 + message;
         }
         else if (choice1 === choice2) {
             $("#result").html("Tie Game");
@@ -111,20 +109,17 @@ $(document).ready(function () {
             wins2++;
             losses1++;
             message = buildMessage2(choice1, choice2);
-            console.log(choice2 + message);
-            // choice2 = choice2 + message;
-
         }
 
         var boxRow = "";
         var val = "";
         if (player === 1) {
-            boxRow = "#box3row2";
-            val = choice2 +message;
+            boxRow = "#player2Choice";
+            val = choice2 +" player 1";
         }
         else if (player === 2) {
-            boxRow = "#box1row2";
-            val = choice1 +message;
+            boxRow = "#player1Choice";
+            val = choice1 +" player 2";
         }
         var chosen = $(boxRow).children(".chosen");
 
@@ -132,7 +127,6 @@ $(document).ready(function () {
         var par = $("<p>");
         par.text(val);
         chosen.append(par);
-        // chosen.addClass("win");
         chosen.show();
 
         database.ref("game/players/1").update({
@@ -214,13 +208,13 @@ $(document).ready(function () {
             var name = gameData.child("game/players/1").val().name;
             var player1Wins = gameData.child("game/players/1").val().wins;
             var player1Losses = gameData.child("game/players/1").val().losses;
-            $("#box1row1").text(name);
+            $("#player1Title").text(name);
             player1Name = name;
-            $("#box1row3").text("Wins: " + player1Wins + " Losses: " + player1Losses);
+            $("#player1Score").text("Wins: " + player1Wins + " Losses: " + player1Losses);
         }
         else {
             player1Ready = false;
-            $("#box1row1").text("Waiting for Player 1");
+            $("#player1Title").text("Waiting for Player 1");
         }
 
         if (gameData.child("game/players/2").exists()) {
@@ -228,13 +222,13 @@ $(document).ready(function () {
             var name = gameData.child("game/players/2").val().name;
             var player2Wins = gameData.child("game/players/2").val().wins;
             var player2Losses = gameData.child("game/players/2").val().losses;
-            $("#box3row1").text(name);
+            $("#player2Title").text(name);
             player2Name = name;
-            $("#box3row3").text("Wins: " + player2Wins + " Losses: " + player2Losses);
+            $("#player2Score").text("Wins: " + player2Wins + " Losses: " + player2Losses);
         }
         else {
             player2Ready = false;
-            $("#box3row1").text("Waiting for Player 2");
+            $("#player2Title").text("Waiting for Player 2");
         }
     }
 
@@ -252,8 +246,8 @@ $(document).ready(function () {
             $("#box3border").css({ "border-color": "black" });
             if (player === 1) {
                 $("#systemMessage2").html("It's your turn");
-                $("#box1row2").children(".choices").show();
-                $("#box1row2").children(".chosen").hide();
+                $("#player1Choice").children(".choices").show();
+                $("#player1Choice").children(".chosen").hide();
             }
             else {
                 $("#systemMessage2").html("Waiting for " + player1Name + " to choose.");
@@ -264,8 +258,8 @@ $(document).ready(function () {
             $("#box1border").css({ "border-color": "black" });
             if (player === 2) {
                 $("#systemMessage2").html("It's your turn " + player);
-                $("#box3row2").children(".choices").show();
-                $("#box3row2").children(".chosen").hide();
+                $("#player2Choice").children(".choices").show();
+                $("#player2Choice").children(".chosen").hide();
             }
             else {
                 $("#systemMessage2").html("Waiting for " + player2Name + " to choose.");
