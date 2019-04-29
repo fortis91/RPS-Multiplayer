@@ -81,6 +81,7 @@ $(document).ready(function () {
         }
     });
 
+
     var compareResults = function (gameData) {
         console.log("check user selection for winner");
         var message;
@@ -99,7 +100,7 @@ $(document).ready(function () {
             losses2++;
             message = buildMessage(choice1, choice2);
             console.log(choice1 + message);
-            choice1 = choice1 + message;
+            // choice1 = choice1 + message;
         }
         else if (choice1 === choice2) {
             $("#result").html("Tie Game");
@@ -111,7 +112,7 @@ $(document).ready(function () {
             losses1++;
             message = buildMessage2(choice1, choice2);
             console.log(choice2 + message);
-            choice2 = choice2 + message;
+            // choice2 = choice2 + message;
 
         }
 
@@ -119,20 +120,19 @@ $(document).ready(function () {
         var val = "";
         if (player === 1) {
             boxRow = "#box3row2";
-            val = choice2;// +message;
+            val = choice2 +message;
         }
         else if (player === 2) {
             boxRow = "#box1row2";
-            val = choice1;// +message;
+            val = choice1 +message;
         }
-
         var chosen = $(boxRow).children(".chosen");
 
         chosen.empty();
         var par = $("<p>");
         par.text(val);
         chosen.append(par);
-        chosen.addClass("red");
+        // chosen.addClass("win");
         chosen.show();
 
         database.ref("game/players/1").update({
@@ -206,8 +206,9 @@ $(document).ready(function () {
         database.ref("game/turn").onDisconnect().remove();
     }
 
+
     var initializePlayers = function (gameData) {
-        console.log("initialize and setup players");
+        console.log("waiting for dB changes");
         if (gameData.child("game/players/1").exists()) {
             player1Ready = true;
             var name = gameData.child("game/players/1").val().name;
@@ -235,8 +236,9 @@ $(document).ready(function () {
             player2Ready = false;
             $("#box3row1").text("Waiting for Player 2");
         }
-
     }
+
+
     var setPlayerTurn = function (gameData) {
         console.log("set next player turn");
         var updatedTurn = parseInt(gameData.child("game/turn").val());
@@ -271,6 +273,7 @@ $(document).ready(function () {
         }
     }
 
+
     var buildMessage = function (choice1, choice2) {
         var message;
         if (choice1 === "Rock" && choice2 === "Scissors") {
@@ -285,6 +288,8 @@ $(document).ready(function () {
         console.log(message);
         return message;
     }
+
+
     var buildMessage2 = function (choice1, choice2) {
         var message;
         if (choice2 === "Rock" && choice1 === "Scissors") {
@@ -299,6 +304,7 @@ $(document).ready(function () {
         console.log(message);
         return message;
     }
+
 
     var resetGame = function () {
         console.log("reset game");

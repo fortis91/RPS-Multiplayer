@@ -11,7 +11,11 @@ body {
     /* color: #777777; */
     text-align: center;
 }
-
+h1 {
+    padding-bottom: 20px;
+    /* background-color:rgb(157, 184, 201);
+    color: #FFFFFF; */
+}
 .box {
     border: 1px solid black;
     min-height: 250px;
@@ -43,8 +47,9 @@ body {
 }
 
 .lastRow {
-    display: flex;
-    align-items: flex-end;
+    text-align: center;
+    align-content: center;
+    font-weight: bold;
 }
 
 #result {
@@ -62,4 +67,11 @@ body {
 }
 .win {
     color: green;
+}
+
+.playerTitle {
+    background-color: rgb(157, 184, 201);
+    color: #FFFFFF;
+    text-align: center;
+    align-content: center;
 }
